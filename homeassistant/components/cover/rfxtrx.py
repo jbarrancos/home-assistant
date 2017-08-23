@@ -19,26 +19,30 @@ def setup_platform(hass, config, add_devices_callback, discovery_info=None):
     covers = rfxtrx.get_devices_from_config(config, RfxtrxCover, hass)
     add_devices_callback(covers)
 
-    def cover_update(event):
-        """Handle cover updates from the RFXtrx gateway."""
-        if not isinstance(event.device, rfxtrxmod.LightingDevice) or \
-                event.device.known_to_be_dimmable or \
-                not event.device.known_to_be_rollershutter:
-            return
 
-        new_device = rfxtrx.get_new_device(event, config, RfxtrxCover, hass)
-        if new_device:
-            add_devices_callback([new_device])
+def cover_update(event):
+    """Handle cover updates from the RFXtrx gateway."""
+    if not isinstance(event.device, rfxtrxmod.LightingDevice) or \
+            event.device.known_to_be_dimmable or \
+            not event.device.known_to_be_rollershutter:
+        return
 
-        rfxtrx.apply_received_command(event)
+    new_device = rfxtrx.get_new_device(event, config, RfxtrxCover, hass)
+    if new_device:
+        add_devices_callback([new_device])
 
-    # Subscribe to main RFXtrx events
-    if cover_update not in rfxtrx.RECEIVED_EVT_SUBSCRIBERS:
-        rfxtrx.RECEIVED_EVT_SUBSCRIBERS.append(cover_update)
+    rfxtrx.apply_received_command(event)
+
 
 
 class RfxtrxCover(rfxtrx.RfxtrxDevice, CoverDevice):
     """Representation of a RFXtrx cover."""
+
+    @asyncio.coroutine
+    def async_added_to_hass(self):
+        """Register callbacks."""
+        if cover_update not in rfxtrx.RECEIVED_EVT_SUBSCRIBERS:
+            rfxtrx.RECEIVED_EVT_SUBSCRIBERS.append(cover_update)
 
     @property
     def should_poll(self):

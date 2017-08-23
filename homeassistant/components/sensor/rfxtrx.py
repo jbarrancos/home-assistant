@@ -55,6 +55,7 @@ def setup_platform(hass, config, add_devices_callback, discovery_info=None):
         rfxtrx.RFX_DEVICES[device_id] = sub_sensors
     add_devices_callback(sensors)
 
+
 def sensor_update(event):
     """Handle sensor updates from the RFXtrx gateway."""
     if not isinstance(event, SensorEvent):
@@ -133,7 +134,7 @@ class RfxtrxSensor(Entity):
     @asyncio.coroutine
     def async_added_to_hass(self):
         """Register callbacks."""
-         if sensor_update not in rfxtrx.RECEIVED_EVT_SUBSCRIBERS:
+        if sensor_update not in rfxtrx.RECEIVED_EVT_SUBSCRIBERS:
             rfxtrx.RECEIVED_EVT_SUBSCRIBERS.append(sensor_update)
 
     @property

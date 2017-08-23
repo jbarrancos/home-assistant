@@ -49,5 +49,5 @@ class RfxtrxSwitch(rfxtrx.RfxtrxDevice, SwitchDevice):
     @asyncio.coroutine
     def async_added_to_hass(self):
         """Register callbacks."""
-         if switch_update not in rfxtrx.RECEIVED_EVT_SUBSCRIBERS:
+        if switch_update not in rfxtrx.RECEIVED_EVT_SUBSCRIBERS:
             rfxtrx.RECEIVED_EVT_SUBSCRIBERS.append(switch_update)

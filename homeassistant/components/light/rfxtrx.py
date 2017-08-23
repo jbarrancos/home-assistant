@@ -26,21 +26,17 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     lights = rfxtrx.get_devices_from_config(config, RfxtrxLight, hass)
     add_devices(lights)
 
-    def light_update(event):
-        """Handle light updates from the RFXtrx gateway."""
-        if not isinstance(event.device, rfxtrxmod.LightingDevice) or \
-                not event.device.known_to_be_dimmable:
-            return
+def light_update(event):
+    """Handle light updates from the RFXtrx gateway."""
+    if not isinstance(event.device, rfxtrxmod.LightingDevice) or \
+            not event.device.known_to_be_dimmable:
+        return
 
-        new_device = rfxtrx.get_new_device(event, config, RfxtrxLight, hass)
-        if new_device:
-            add_devices([new_device])
+    new_device = rfxtrx.get_new_device(event, config, RfxtrxLight, hass)
+    if new_device:
+        add_devices([new_device])
 
-        rfxtrx.apply_received_command(event)
-
-    # Subscribe to main RFXtrx events
-    if light_update not in rfxtrx.RECEIVED_EVT_SUBSCRIBERS:
-        rfxtrx.RECEIVED_EVT_SUBSCRIBERS.append(light_update)
+    rfxtrx.apply_received_command(event)
 
 
 class RfxtrxLight(rfxtrx.RfxtrxDevice, Light):
@@ -55,6 +51,12 @@ class RfxtrxLight(rfxtrx.RfxtrxDevice, Light):
     def supported_features(self):
         """Flag supported features."""
         return SUPPORT_RFXTRX
+
+    @asyncio.coroutine
+    def async_added_to_hass(self):
+        """Register callbacks."""
+         if light_update not in rfxtrx.RECEIVED_EVT_SUBSCRIBERS:
+            rfxtrx.RECEIVED_EVT_SUBSCRIBERS.append(light_update)
 
     def turn_on(self, **kwargs):
         """Turn the light on."""

@@ -21,25 +21,22 @@ def setup_platform(hass, config, add_devices_callback, discovery_info=None):
     import RFXtrx as rfxtrxmod
 
     # Add switch from config file
-    switches = rfxtrx.get_devices_from_config(config, RfxtrxSwitch, hass)
+    switches = rfxtrx.get_devices_from_config(config, RfxtrxSwitch)
     add_devices_callback(switches)
 
-    def switch_update(event):
-        """Handle sensor updates from the RFXtrx gateway."""
-        if not isinstance(event.device, rfxtrxmod.LightingDevice) or \
-                event.device.known_to_be_dimmable or \
-                event.device.known_to_be_rollershutter:
-            return
 
-        new_device = rfxtrx.get_new_device(event, config, RfxtrxSwitch, hass)
-        if new_device:
-            add_devices_callback([new_device])
+def switch_update(event):
+    """Handle sensor updates from the RFXtrx gateway."""
+    if not isinstance(event.device, rfxtrxmod.LightingDevice) or \
+            event.device.known_to_be_dimmable or \
+            event.device.known_to_be_rollershutter:
+        return
 
-        rfxtrx.apply_received_command(event)
+    new_device = rfxtrx.get_new_device(event, config, RfxtrxSwitch)
+    if new_device:
+        add_devices_callback([new_device])
 
-    # Subscribe to main RFXtrx events
-    if switch_update not in rfxtrx.RECEIVED_EVT_SUBSCRIBERS:
-        rfxtrx.RECEIVED_EVT_SUBSCRIBERS.append(switch_update)
+    rfxtrx.apply_received_command(event)
 
 
 class RfxtrxSwitch(rfxtrx.RfxtrxDevice, SwitchDevice):
@@ -48,3 +45,9 @@ class RfxtrxSwitch(rfxtrx.RfxtrxDevice, SwitchDevice):
     def turn_on(self, **kwargs):
         """Turn the device on."""
         self._send_command("turn_on")
+
+    @asyncio.coroutine
+    def async_added_to_hass(self):
+        """Register callbacks."""
+         if switch_update not in rfxtrx.RECEIVED_EVT_SUBSCRIBERS:
+            rfxtrx.RECEIVED_EVT_SUBSCRIBERS.append(switch_update)

@@ -4,6 +4,7 @@ Support for RFXtrx switches.
 For more details about this platform, please refer to the documentation at
 https://home-assistant.io/components/switch.rfxtrx/
 """
+import asyncio
 import logging
 
 import homeassistant.components.rfxtrx as rfxtrx

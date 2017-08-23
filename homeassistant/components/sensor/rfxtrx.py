@@ -55,48 +55,45 @@ def setup_platform(hass, config, add_devices_callback, discovery_info=None):
         rfxtrx.RFX_DEVICES[device_id] = sub_sensors
     add_devices_callback(sensors)
 
-    def sensor_update(event):
-        """Handle sensor updates from the RFXtrx gateway."""
-        if not isinstance(event, SensorEvent):
-            return
+def sensor_update(event):
+    """Handle sensor updates from the RFXtrx gateway."""
+    if not isinstance(event, SensorEvent):
+        return
 
-        device_id = "sensor_" + slugify(event.device.id_string.lower())
+    device_id = "sensor_" + slugify(event.device.id_string.lower())
 
-        if device_id in rfxtrx.RFX_DEVICES:
-            sensors = rfxtrx.RFX_DEVICES[device_id]
-            for key in sensors:
-                sensor = sensors[key]
-                sensor.event = event
-                # Fire event
-                if sensors[key].should_fire_event:
-                    sensor.hass.bus.fire(
-                        "signal_received", {
-                            ATTR_ENTITY_ID:
-                                sensors[key].entity_id,
-                        }
-                    )
-            return
+    if device_id in rfxtrx.RFX_DEVICES:
+        sensors = rfxtrx.RFX_DEVICES[device_id]
+        for key in sensors:
+            sensor = sensors[key]
+            sensor.event = event
+            # Fire event
+            if sensors[key].should_fire_event:
+                sensor.hass.bus.fire(
+                    "signal_received", {
+                        ATTR_ENTITY_ID:
+                            sensors[key].entity_id,
+                    }
+                )
+        return
 
-        # Add entity if not exist and the automatic_add is True
-        if not config[ATTR_AUTOMATIC_ADD]:
-            return
+    # Add entity if not exist and the automatic_add is True
+    if not config[ATTR_AUTOMATIC_ADD]:
+        return
 
-        pkt_id = "".join("{0:02x}".format(x) for x in event.data)
-        _LOGGER.info("Automatic add rfxtrx.sensor: %s", pkt_id)
+    pkt_id = "".join("{0:02x}".format(x) for x in event.data)
+    _LOGGER.info("Automatic add rfxtrx.sensor: %s", pkt_id)
 
-        data_type = ''
-        for _data_type in DATA_TYPES:
-            if _data_type in event.values:
-                data_type = _data_type
-                break
-        new_sensor = RfxtrxSensor(event, pkt_id, data_type)
-        sub_sensors = {}
-        sub_sensors[new_sensor.data_type] = new_sensor
-        rfxtrx.RFX_DEVICES[device_id] = sub_sensors
-        add_devices_callback([new_sensor])
-
-    if sensor_update not in rfxtrx.RECEIVED_EVT_SUBSCRIBERS:
-        rfxtrx.RECEIVED_EVT_SUBSCRIBERS.append(sensor_update)
+    data_type = ''
+    for _data_type in DATA_TYPES:
+        if _data_type in event.values:
+            data_type = _data_type
+            break
+    new_sensor = RfxtrxSensor(event, pkt_id, data_type)
+    sub_sensors = {}
+    sub_sensors[new_sensor.data_type] = new_sensor
+    rfxtrx.RFX_DEVICES[device_id] = sub_sensors
+    add_devices_callback([new_sensor])
 
 
 class RfxtrxSensor(Entity):
@@ -132,6 +129,12 @@ class RfxtrxSensor(Entity):
         if not self.event:
             return None
         return self.event.values
+
+    @asyncio.coroutine
+    def async_added_to_hass(self):
+        """Register callbacks."""
+         if sensor_update not in rfxtrx.RECEIVED_EVT_SUBSCRIBERS:
+            rfxtrx.RECEIVED_EVT_SUBSCRIBERS.append(sensor_update)
 
     @property
     def unit_of_measurement(self):

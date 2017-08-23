@@ -4,6 +4,7 @@ Support for RFXtrx cover components.
 For more details about this platform, please refer to the documentation
 https://home-assistant.io/components/cover.rfxtrx/
 """
+import asyncio
 import homeassistant.components.rfxtrx as rfxtrx
 from homeassistant.components.cover import CoverDevice
 

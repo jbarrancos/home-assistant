@@ -31,7 +31,6 @@ PLATFORM_SCHEMA = vol.Schema({
 
 def setup_platform(hass, config, add_devices_callback, discovery_info=None):
     """Set up the RFXtrx platform."""
-    from RFXtrx import SensorEvent
     sensors = []
     for packet_id, entity_info in config[CONF_DEVICES].items():
         event = rfxtrx.get_rfx_object(packet_id)
@@ -59,6 +58,8 @@ def setup_platform(hass, config, add_devices_callback, discovery_info=None):
 
 def sensor_update(event):
     """Handle sensor updates from the RFXtrx gateway."""
+    from RFXtrx import SensorEvent
+
     if not isinstance(event, SensorEvent):
         return
 

@@ -15,14 +15,14 @@ PLATFORM_SCHEMA = rfxtrx.DEFAULT_SCHEMA
 
 def setup_platform(hass, config, add_devices_callback, discovery_info=None):
     """Set up the RFXtrx cover."""
-    import RFXtrx as rfxtrxmod
-
     covers = rfxtrx.get_devices_from_config(config, RfxtrxCover, hass)
     add_devices_callback(covers)
 
 
 def cover_update(event):
     """Handle cover updates from the RFXtrx gateway."""
+    import RFXtrx as rfxtrxmod
+
     if not isinstance(event.device, rfxtrxmod.LightingDevice) or \
             event.device.known_to_be_dimmable or \
             not event.device.known_to_be_rollershutter:

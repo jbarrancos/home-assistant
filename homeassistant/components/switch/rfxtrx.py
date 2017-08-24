@@ -19,8 +19,6 @@ PLATFORM_SCHEMA = rfxtrx.DEFAULT_SCHEMA
 
 def setup_platform(hass, config, add_devices_callback, discovery_info=None):
     """Set up the RFXtrx platform."""
-    import RFXtrx as rfxtrxmod
-
     # Add switch from config file
     switches = rfxtrx.get_devices_from_config(config, RfxtrxSwitch)
     add_devices_callback(switches)
@@ -28,6 +26,8 @@ def setup_platform(hass, config, add_devices_callback, discovery_info=None):
 
 def switch_update(event):
     """Handle sensor updates from the RFXtrx gateway."""
+    import RFXtrx as rfxtrxmod
+
     if not isinstance(event.device, rfxtrxmod.LightingDevice) or \
             event.device.known_to_be_dimmable or \
             event.device.known_to_be_rollershutter:
